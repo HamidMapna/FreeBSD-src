@@ -707,7 +707,7 @@ verify_signature(int fd_pkg, int fd_sig)
 
 	/* Parse signature and pubkey out of the certificate */
 	hash = sha256_buf(sc->cert, sc->certlen);
-
+        printf("pkg.c,hash=%s\t line %d\n", hash,__LINE__);
 	/* Check if this hash is revoked */
 	if (revoked != NULL) {
 		STAILQ_FOREACH(fingerprint, revoked, next) {
@@ -719,8 +719,9 @@ verify_signature(int fd_pkg, int fd_sig)
 			}
 		}
 	}
-
+	printf("pkg.c line %d\n", __LINE__);
 	STAILQ_FOREACH(fingerprint, trusted, next) {
+	printf("pkg.c line %d\nhash1=%s\nhash2=%s\n", __LINE__,fingerprint->hash,hash);
 		if (strcasecmp(fingerprint->hash, hash) == 0) {
 			sc->trusted = true;
 			sc->name = strdup(fingerprint->name);
