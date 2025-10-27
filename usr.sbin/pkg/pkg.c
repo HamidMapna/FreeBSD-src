@@ -824,7 +824,7 @@ bootstrap_pkg(bool force, const char *fetchOpts)
 				    "available.\n");
 				goto fetchfail;
 			}
-
+			printf("in %s, l %d, url=%s,\t tmpsig=%s\n", "bootstrap_pkg", __LINE__,url,tmpsig);
 			if (verify_signature(fd_pkg, fd_sig) == false)
 				goto cleanup;
 		} else if (strcasecmp(signature_type, "PUBKEY") == 0) {
@@ -925,7 +925,7 @@ bootstrap_pkg_local(const char *pkgpath, bool force)
 	char pkgstatic[MAXPATHLEN];
 	const char *signature_type;
 	int fd_pkg, fd_sig, ret;
-
+        printf("in %s, l %d, pkgpath=%s\n", "bootstrap_pkg_local", __LINE__,pkgpath);
 	fd_sig = -1;
 	ret = -1;
 
@@ -955,7 +955,7 @@ bootstrap_pkg_local(const char *pkgpath, bool force)
 		} else if (strcasecmp(signature_type, "PUBKEY") == 0) {
 
 			snprintf(path, sizeof(path), "%s.pubkeysig", pkgpath);
-
+                        printf("in %s, l %d, path=%s\n", "bootstrap_pkg_local", __LINE__,path);
 			if ((fd_sig = open(path, O_RDONLY)) == -1) {
 				fprintf(stderr, "Signature for pkg not "
 				    "available.\n");
