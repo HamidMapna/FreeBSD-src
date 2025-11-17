@@ -174,9 +174,16 @@ subst_packagesite(const char *abi)
 	const char *oldval;
 
 	if (c[PACKAGESITE].value != NULL)
+{
 		oldval = c[PACKAGESITE].value;
+		printf("c[PACKAGESITE].value=%s\n",c[PACKAGESITE].value);
+}
 	else
+{
 		oldval = c[PACKAGESITE].val;
+		printf("c[PACKAGESITE].val=%s\n",c[PACKAGESITE].val);
+}
+
 
 	if ((variable_string = strstr(oldval, "${ABI}")) == NULL)
 		return;
@@ -420,6 +427,7 @@ cleanup:
 int
 config_init(void)
 {
+printf("begining of config_init,CONFIG_SIZE=%d\n",CONFIG_SIZE);
 	char *val;
 	int i;
 	const char *localbase;
@@ -432,6 +440,7 @@ config_init(void)
 		val = getenv(c[i].key);
 		if (val != NULL) {
 			c[i].envset = true;
+			printf("val=%s,type=%d\n",val,c[i].type);
 			switch (c[i].type) {
 			case PKG_CONFIG_LIST:
 				/* Split up comma-separated items from env. */
@@ -440,6 +449,7 @@ config_init(void)
 				for (env_list_item = strtok(val, ",");
 				    env_list_item != NULL;
 				    env_list_item = strtok(NULL, ",")) {
+					printf("env_list_item=%s\n", env_list_item);
 					cv =
 					    malloc(sizeof(struct config_value));
 					cv->value =
@@ -450,6 +460,7 @@ config_init(void)
 				break;
 			default:
 				c[i].val = val;
+				printf("c[i].val=%s\n",c[i].val);
 				break;
 			}
 		}
@@ -497,13 +508,20 @@ finalize:
 int
 config_string(pkg_config_key k, const char **val)
 {
+	printf("begining of config_string\n");
 	if (c[k].type != PKG_CONFIG_STRING)
 		return (-1);
 
 	if (c[k].value != NULL)
+{
 		*val = c[k].value;
+		printf("c[k].value=%s\n",c[k].value);
+}
 	else
+{
 		*val = c[k].val;
+		printf("c[k].val=%s\n",c[k].val);
+}
 
 	return (0);
 }
