@@ -168,6 +168,7 @@ pkg_get_myabi(char *dest, size_t sz)
 static void
 subst_packagesite(const char *abi)
 {
+	printf("begining of subst_packagesite\n");
 	struct sbuf *newval;
 	const char *variable_string;
 	const char *oldval;
@@ -179,7 +180,7 @@ subst_packagesite(const char *abi)
 
 	if ((variable_string = strstr(oldval, "${ABI}")) == NULL)
 		return;
-
+	printf("oldval=%s\nvariable_string=%s\n abi=%s\n,",oldval,variable_string, abi);
 	newval = sbuf_new_auto();
 	sbuf_bcat(newval, oldval, variable_string - oldval);
 	sbuf_cat(newval, abi);
@@ -188,6 +189,7 @@ subst_packagesite(const char *abi)
 
 	free(c[PACKAGESITE].value);
 	c[PACKAGESITE].value = strdup(sbuf_data(newval));
+	printf("c[PACKAGESITE].value=%s\n", c[PACKAGESITE].value);
 }
 
 static int
