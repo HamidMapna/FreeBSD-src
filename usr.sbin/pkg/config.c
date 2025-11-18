@@ -213,6 +213,7 @@ boolstr_to_bool(const char *str)
 static void
 config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 {
+	printf("begining of config_parse. conftype=%d\n",conftype);
 	struct sbuf *buf = sbuf_new_auto();
 	const ucl_object_t *cur, *seq;
 	ucl_object_iter_t it = NULL, itseq = NULL;
@@ -259,7 +260,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			if (strcmp(sbuf_data(buf), c[i].key) == 0)
 				break;
 		}
-
+		printf("1- c[i].key=%s,c[i].envset=%d,c[i].type=%d\n",c[i].key,c[i].envset,c[i].type);
 		/* Silently skip unknown keys to be future compatible. */
 		if (i == CONFIG_SIZE)
 			continue;
@@ -297,12 +298,14 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
+			printf("type:Normal string value.temp_config[i].value=%s\n",temp_config[i].value);
 			break;
 		}
 	}
 
 	/* Repo is enabled, copy over all settings from temp_config. */
 	for (i = 0; i < CONFIG_SIZE; i++) {
+	printf("2- c[i].key=%s,c[i].envset=%d,c[i].type=%d,c[i].main_only=%d\n",c[i].key,c[i].envset,c[i].type,c[i].main_only);
 		if (c[i].envset)
 			continue;
 		/* Prevent overriding ABI, ASSUME_ALWAYS_YES, etc. */
@@ -314,6 +317,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			break;
 		default:
 			c[i].value = temp_config[i].value;
+			printf("default:c[i].value=%s\n", c[i].value);
 			break;
 		}
 	}
