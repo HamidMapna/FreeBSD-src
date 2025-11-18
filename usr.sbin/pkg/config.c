@@ -228,6 +228,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 
 	while ((cur = ucl_iterate_object(obj, &it, true))) {
 		key = ucl_object_key(cur);
+		printf("ucl_object_key(cur)=%s\n", key);
 		if (key == NULL)
 			continue;
 		sbuf_clear(buf);
@@ -260,7 +261,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			if (strcmp(sbuf_data(buf), c[i].key) == 0)
 				break;
 		}
-		if(!strcmp(c[i].key,PACKAGESITE))
+		if(!strcmp(c[i].key, "PACKAGESITE"))
 			printf("1- c[i].key=%s,c[i].envset=%d,c[i].type=%d\n",c[i].key,c[i].envset,c[i].type);
 		/* Silently skip unknown keys to be future compatible. */
 		if (i == CONFIG_SIZE)
@@ -299,16 +300,16 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
-			if(!strcmp(c[i].key,PACKAGESITE))
-				printf("type:Normal string value.temp_config[i].value=%s\n",temp_config[i].value);
+			if(!strcmp(c[i].key, "PACKAGESITE"))
+				printf("i=%d, type:Normal string value.temp_config[i].value=%s\n",i,temp_config[i].value);
 			break;
 		}
 	}
 
 	/* Repo is enabled, copy over all settings from temp_config. */
 	for (i = 0; i < CONFIG_SIZE; i++) {
-		if(!strcmp(c[i].key,PACKAGESITE))
-			printf("2- c[i].key=%s,c[i].envset=%d,c[i].type=%d,c[i].main_only=%d\n",c[i].key,c[i].envset,c[i].type,c[i].main_only);
+		if(!strcmp(c[i].key, "PACKAGESITE"))
+			printf("2- i=%d, c[i].key=%s,c[i].envset=%d,c[i].type=%d,c[i].main_only=%d\n",i,c[i].key,c[i].envset,c[i].type,c[i].main_only);
 		if (c[i].envset)
 			continue;
 		/* Prevent overriding ABI, ASSUME_ALWAYS_YES, etc. */
@@ -320,7 +321,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			break;
 		default:
 			c[i].value = temp_config[i].value;
-			if(!strcmp(c[i].key,PACKAGESITE))			
+			if(!strcmp(c[i].key, "PACKAGESITE"))
 				printf("default:c[i].value=%s\n", c[i].value);
 			break;
 		}
@@ -372,6 +373,7 @@ read_conf_file(const char *confpath, pkg_conf_file_t conftype)
 			errx(EXIT_FAILURE, "Unable to parse configuration "
 			    "file %s: %s", confpath, ucl_parser_get_error(p));
 		ucl_parser_free(p);
+		printf("no configuration present , return 1\n");
 		/* no configuration present */
 		return (1);
 	}
@@ -452,7 +454,7 @@ printf("begining of config_init,CONFIG_SIZE=%d\n",CONFIG_SIZE);
 	char abi[BUFSIZ];
 
 	for (i = 0; i < CONFIG_SIZE; i++) {
-		val = getenv(c[i].key);
+		val = getenv(c[i].key);		
 		if (val != NULL) {
 			c[i].envset = true;
 			printf("val=%s,type=%d\n",val,c[i].type);
@@ -463,8 +465,7 @@ printf("begining of config_init,CONFIG_SIZE=%d\n",CONFIG_SIZE);
 				STAILQ_INIT(c[i].list);
 				for (env_list_item = strtok(val, ",");
 				    env_list_item != NULL;
-				    env_list_item = strtok(NULL, ",")) {
-					printf("env_list_item=%s\n", env_list_item);
+				    env_list_item = strtok(NULL, ",")) {					
 					cv =
 					    malloc(sizeof(struct config_value));
 					cv->value =
@@ -474,8 +475,7 @@ printf("begining of config_init,CONFIG_SIZE=%d\n",CONFIG_SIZE);
 				}
 				break;
 			default:
-				c[i].val = val;
-				printf("c[i].val=%s\n",c[i].val);
+				c[i].val = val;				
 				break;
 			}
 		}
