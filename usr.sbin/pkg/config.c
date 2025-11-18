@@ -260,7 +260,8 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			if (strcmp(sbuf_data(buf), c[i].key) == 0)
 				break;
 		}
-		printf("1- c[i].key=%s,c[i].envset=%d,c[i].type=%d\n",c[i].key,c[i].envset,c[i].type);
+		if(!strcmp(c[i].key,PACKAGESITE))
+			printf("1- c[i].key=%s,c[i].envset=%d,c[i].type=%d\n",c[i].key,c[i].envset,c[i].type);
 		/* Silently skip unknown keys to be future compatible. */
 		if (i == CONFIG_SIZE)
 			continue;
@@ -298,14 +299,16 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
-			printf("type:Normal string value.temp_config[i].value=%s\n",temp_config[i].value);
+			if(!strcmp(c[i].key,PACKAGESITE))
+				printf("type:Normal string value.temp_config[i].value=%s\n",temp_config[i].value);
 			break;
 		}
 	}
 
 	/* Repo is enabled, copy over all settings from temp_config. */
 	for (i = 0; i < CONFIG_SIZE; i++) {
-	printf("2- c[i].key=%s,c[i].envset=%d,c[i].type=%d,c[i].main_only=%d\n",c[i].key,c[i].envset,c[i].type,c[i].main_only);
+		if(!strcmp(c[i].key,PACKAGESITE))
+			printf("2- c[i].key=%s,c[i].envset=%d,c[i].type=%d,c[i].main_only=%d\n",c[i].key,c[i].envset,c[i].type,c[i].main_only);
 		if (c[i].envset)
 			continue;
 		/* Prevent overriding ABI, ASSUME_ALWAYS_YES, etc. */
@@ -317,7 +320,8 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			break;
 		default:
 			c[i].value = temp_config[i].value;
-			printf("default:c[i].value=%s\n", c[i].value);
+			if(!strcmp(c[i].key,PACKAGESITE))			
+				printf("default:c[i].value=%s\n", c[i].value);
 			break;
 		}
 	}
@@ -349,7 +353,6 @@ parse_repo_file(ucl_object_t *obj)
 
 		if (cur->type != UCL_OBJECT)
 			continue;
-
 		config_parse(cur, CONFFILE_REPO);
 	}
 }
@@ -358,6 +361,7 @@ parse_repo_file(ucl_object_t *obj)
 static int
 read_conf_file(const char *confpath, pkg_conf_file_t conftype)
 {
+	printf("beginning of read_conf_file, confpath=%s,conftype=%d\n", confpath,conftype);
 	struct ucl_parser *p;
 	ucl_object_t *obj = NULL;
 
@@ -378,9 +382,15 @@ read_conf_file(const char *confpath, pkg_conf_file_t conftype)
 		    "configuration file %s", confpath);
 	else {
 		if (conftype == CONFFILE_PKG)
+		{
+			printf("call config_parse from read_conf_file, conftype==CONFFILE_PKG\n");
 			config_parse(obj, conftype);
+		}
 		else if (conftype == CONFFILE_REPO)
+		{
+			printf("call config_parse from read_conf_file->parse_repo_file, conftype==CONFFILE_REPO\n");
 			parse_repo_file(obj);
+		}
 	}
 
 	ucl_object_unref(obj);
@@ -392,6 +402,7 @@ read_conf_file(const char *confpath, pkg_conf_file_t conftype)
 static int
 load_repositories(const char *repodir)
 {
+	printf("beginning of load_repositories, repodir=%s\n", repodir);
 	struct dirent *ent;
 	DIR *d;
 	char *p;
@@ -474,7 +485,7 @@ printf("begining of config_init,CONFIG_SIZE=%d\n",CONFIG_SIZE);
 	localbase = getenv("LOCALBASE") ? getenv("LOCALBASE") : _LOCALBASE;
 	snprintf(confpath, sizeof(confpath), "%s/etc/pkg.conf",
 	    localbase);
-
+	printf("in config_init, confpath=%s\n", confpath);
 	if (access(confpath, F_OK) == 0 && read_conf_file(confpath,
 	    CONFFILE_PKG))
 		goto finalize;
