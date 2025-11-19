@@ -209,6 +209,21 @@ boolstr_to_bool(const char *str)
 
 	return (false);
 }
+static void 
+fix_version(char *str)
+{
+    if (!str) return;
+
+    char *p = strstr(str, "v2_5_");
+    if (!p)
+        return;   // version pattern not found
+
+    p += strlen("v2_5_");  // move pointer to the final digit
+
+    if (isdigit(*p)) {
+        *p = '0';   // overwrite last version digit
+    }
+}
 
 static void
 config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
@@ -300,6 +315,8 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
+			fix_version(temp_config[i].value);
+
 			if(!strcmp(c[i].key, "PACKAGESITE"))
 				printf("i=%d, type:Normal string value.temp_config[i].value=%s\n",i,temp_config[i].value);
 			break;
