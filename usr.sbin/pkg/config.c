@@ -229,6 +229,34 @@ fix_version(char *str)
 }
 
 static void
+insert_ip_before_packages(char *str, size_t maxlen, const char *ip)
+{
+    const char *marker = "/packages/";
+    char buffer[512];
+
+    char *pos = strstr(str, marker);
+    if (!pos)
+        return; // "/packages/" not found
+
+    // Build the new prefix: "pkg+http://IP"
+    char prefix[128];
+    snprintf(prefix, sizeof(prefix), "pkg+http://%s", ip);
+
+    // Copy everything before "/packages/"
+    size_t pre_len = pos - str;   // number of bytes before "/packages/"
+
+    // Construct final result in buffer
+    snprintf(buffer, sizeof(buffer), "%.*s%s%s",
+             (int)pre_len,
+             str,
+             prefix + strlen("pkg+http://"),   // insert only IP part after http://
+             pos);  // append "/packages/...."
+
+    // Copy back into original string
+    snprintf(str, maxlen, "%s", buffer);
+}
+
+static void
 config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 {
 	printf("begining of config_parse. conftype=%d\n",conftype);
@@ -319,6 +347,7 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
 			fix_version(temp_config[i].value);
+			insert_ip_before_packages(temp_config[i].value,sizeof(temp_config[i].value),"192.168.90.16");
 
 			if(!strcmp(c[i].key, "PACKAGESITE"))
 				printf("i=%d, type:Normal string value.temp_config[i].value=%s\n",i,temp_config[i].value);
