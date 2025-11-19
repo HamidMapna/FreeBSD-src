@@ -377,8 +377,8 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
-			fix_all_versions(&temp_config[i].value);
-			insert_ip_before_packages(&temp_config[i].value, "192.168.90.16");
+			//fix_all_versions(&temp_config[i].value);
+			//insert_ip_before_packages(&temp_config[i].value, "192.168.90.16");
 
 			if(!strcmp(c[i].key, "PACKAGESITE"))
 				printf("i=%d, type:Normal string value.temp_config[i].value=%s\n",i,temp_config[i].value);
