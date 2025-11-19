@@ -210,50 +210,81 @@ boolstr_to_bool(const char *str)
 	return (false);
 }
 static void 
-fix_version(char *str)
+fix_all_versions(char **pstr)
 {
+    if (!pstr || !*pstr) return;
+
     const char *needle = "v2_5_1";
     const char *replacement = "v2_5_0";
     size_t nlen = strlen(needle);
+    size_t rlen = strlen(replacement);
+    const char *src = *pstr;
 
-    if (!str)
-        return;
-
-    char *p = str;
-
-    while ((p = strstr(p, needle)) != NULL) {
-        /* overwrite "v2_5_1" with "v2_5_0" */
-        memcpy(p, replacement, nlen);
-        p += nlen;  // move past this occurrence
+    // First pass: calculate new length
+    size_t newlen = 0;
+    const char *p = src;
+    while (1) {
+        const char *hit = strstr(p, needle);
+        if (!hit) {
+            newlen += strlen(p);
+            break;
+        }
+        newlen += (size_t)(hit - p);  // part before match
+        newlen += rlen;               // replacement
+        p = hit + nlen;
     }
+
+    char *dst = malloc(newlen + 1);
+    if (!dst) return;  // out of memory
+
+    // Second pass: actually build the string
+    char *out = dst;
+    p = src;
+    while (1) {
+        const char *hit = strstr(p, needle);
+        if (!hit) {
+            strcpy(out, p);
+            break;
+        }
+        size_t chunk = (size_t)(hit - p);
+        memcpy(out, p, chunk);
+        out += chunk;
+        memcpy(out, replacement, rlen);
+        out += rlen;
+        p = hit + nlen;
+    }
+
+    free(*pstr);
+    *pstr = dst;
 }
 
 static void
-insert_ip_before_packages(char *str, size_t maxlen, const char *ip)
+insert_ip_before_packages(char **pstr, const char *ip)
 {
+    if (!pstr || !*pstr || !ip) return;
+
     const char *marker = "/packages/";
-    char buffer[512];
+    const char *orig = *pstr;
 
-    char *pos = strstr(str, marker);
-    if (!pos)
-        return; // "/packages/" not found
+    const char *pos = strstr(orig, marker);
+    if (!pos) return;  // no "/packages/" found
 
-    // Build the new prefix: "pkg+http://IP"
-    char prefix[128];
-    snprintf(prefix, sizeof(prefix), "pkg+http://%s", ip);
+    // length: "pkg+http://" + ip + rest of string from marker
+    const char *scheme = "pkg+http://";
+    size_t scheme_len = strlen(scheme);
+    size_t ip_len = strlen(ip);
+    size_t tail_len = strlen(pos);
 
-    // Copy everything before "/packages/"
-    size_t pre_len = pos - str;   // number of bytes before "/packages/"
+    size_t newlen = scheme_len + ip_len + tail_len;
 
-    // Construct final result in buffer
-    snprintf(buffer, sizeof(buffer), "%.*s%s%s",
-             (int)pre_len,
-             str,
-             prefix + strlen("pkg+http://"),   // insert only IP part after http://
-             pos);  // append "/packages/...."
+    char *buf = malloc(newlen + 1);
+    if (!buf) return;
 
-    // Copy back into original string
-    snprintf(str, maxlen, "%s", buffer);
+    // Build new string: "pkg+http://<ip><tail>"
+    sprintf(buf, "%s%s%s", scheme, ip, pos);
+
+    free(*pstr);
+    *pstr = buf;
 }
 
 static void
@@ -346,8 +377,8 @@ config_parse(const ucl_object_t *obj, pkg_conf_file_t conftype)
 		default:
 			/* Normal string value. */
 			temp_config[i].value = strdup(ucl_object_tostring(cur));
-			fix_version(temp_config[i].value);
-			insert_ip_before_packages(temp_config[i].value,sizeof(temp_config[i].value),"192.168.90.16");
+			fix_all_versions(&temp_config[i].value);
+			insert_ip_before_packages(&temp_config[i].value, "192.168.90.16");
 
 			if(!strcmp(c[i].key, "PACKAGESITE"))
 				printf("i=%d, type:Normal string value.temp_config[i].value=%s\n",i,temp_config[i].value);
