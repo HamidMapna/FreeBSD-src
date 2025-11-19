@@ -212,16 +212,19 @@ boolstr_to_bool(const char *str)
 static void 
 fix_version(char *str)
 {
-    if (!str) return;
+    const char *needle = "v2_5_1";
+    const char *replacement = "v2_5_0";
+    size_t nlen = strlen(needle);
 
-    char *p = strstr(str, "v2_5_");
-    if (!p)
-        return;   // version pattern not found
+    if (!str)
+        return;
 
-    p += strlen("v2_5_");  // move pointer to the final digit
+    char *p = str;
 
-    if (isdigit(*p)) {
-        *p = '0';   // overwrite last version digit
+    while ((p = strstr(p, needle)) != NULL) {
+        /* overwrite "v2_5_1" with "v2_5_0" */
+        memcpy(p, replacement, nlen);
+        p += nlen;  // move past this occurrence
     }
 }
 
