@@ -74,9 +74,11 @@ FILE *openssl_fopen(const char *filename, const char *mode)
              * UTF-8 decode succeeded, but no file, filename
              * could still have been locale-ized...
              */
+	    printf("0- o_fopen.c, line %d,filename=%s\n", __LINE__,filename);
             file = fopen(filename, mode);
         }
     } else if (GetLastError() == ERROR_NO_UNICODE_TRANSLATION) {
+	printf("1- o_fopen.c, line %d,filename=%s\n", __LINE__,filename);
         file = fopen(filename, mode);
     }
 # elif defined(__DJGPP__)
@@ -106,11 +108,13 @@ FILE *openssl_fopen(const char *filename, const char *mode)
             *iterator = '\0';
             filename = newname;
         }
+	printf("2-o_fopen.c, line %d,filename=%s\n", __LINE__,filename);
         file = fopen(filename, mode);
 
         OPENSSL_free(newname);
     }
 # else
+    printf("3-o_fopen.c, line %d,filename=%s\n", __LINE__,filename);
     file = fopen(filename, mode);
 # endif
     return file;
